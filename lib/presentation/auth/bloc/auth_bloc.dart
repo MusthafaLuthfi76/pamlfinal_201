@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:emas_app/data/model/request/asetRequest.dart';
 import 'package:emas_app/data/model/request/auth/loginRequest.dart';
 import 'package:emas_app/data/model/request/auth/registerRequest.dart';
 import 'package:emas_app/data/repository/authRepository.dart';

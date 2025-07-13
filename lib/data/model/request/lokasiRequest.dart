@@ -1,17 +1,14 @@
 class LokasiRequest {
   final String nama;
-  final double? latitude;
-  final double? longitude;
+  final String alamat;
 
   LokasiRequest({
     required this.nama,
-    this.latitude,
-    this.longitude,
+    required this.alamat,
   });
 
   Map<String, dynamic> toJson() => {
-    "nama": nama,
-    "latitude": latitude,
-    "longitude": longitude,
-  };
+        "nama": nama,
+        "alamat": alamat,
+      };
 }

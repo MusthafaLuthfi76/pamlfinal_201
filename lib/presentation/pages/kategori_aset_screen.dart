@@ -4,6 +4,8 @@ import '../../data/model/request/kategoriRequest.dart';
 import '../../data/repository/kategori_aset_repository.dart';
 
 class KategoriAsetScreen extends StatefulWidget {
+  const KategoriAsetScreen({super.key});
+
   @override
   _KategoriAsetScreenState createState() => _KategoriAsetScreenState();
 }
@@ -31,8 +33,8 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
   }
 
   void _showForm({KategoriAset? kategori}) {
-    final _formKey = GlobalKey<FormState>();
-    final TextEditingController _nameController = TextEditingController(
+    final formKey = GlobalKey<FormState>();
+    final TextEditingController nameController = TextEditingController(
       text: kategori?.name ?? '',
     );
     showDialog(
@@ -40,9 +42,9 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
       builder: (context) => AlertDialog(
         title: Text(kategori == null ? 'Tambah Kategori' : 'Edit Kategori'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: TextFormField(
-            controller: _nameController,
+            controller: nameController,
             decoration: InputDecoration(labelText: 'Nama Kategori'),
             validator: (value) =>
                 value == null || value.isEmpty ? 'Tidak boleh kosong' : null,
@@ -55,8 +57,8 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                final req = KategoriRequest(name: _nameController.text);
+              if (formKey.currentState!.validate()) {
+                final req = KategoriRequest(name: nameController.text);
                 bool success;
                 if (kategori == null) {
                   success = await _repo.create(req);
@@ -132,8 +134,8 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showForm(),
-        child: Icon(Icons.add),
         tooltip: 'Tambah Kategori',
+        child: Icon(Icons.add),
       ),
     );
   }

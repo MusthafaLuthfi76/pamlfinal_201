@@ -3,11 +3,17 @@ import 'dart:developer';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 class ServiceHttpClient {
-  final String baseUrl = kIsWeb
-    ? 'http://localhost:3000/api/'  // untuk Flutter Web
-    : 'http://10.0.2.2:3000/api/'; // untuk Android emulator
+final String baseUrl = kIsWeb
+    ? 'http://localhost:3000/api/'
+    : Platform.isAndroid
+        ? 'http://192.168.0.185:3000/api/' // untuk emulator dan HP Android (real device)
+        : 'http://localhost:3000/api/';
+
+
+
   final secureStorage = FlutterSecureStorage();
 
   Future<http.Response> post(String endPoint, Map<String, dynamic> body) async {
@@ -60,6 +66,7 @@ class ServiceHttpClient {
     _log("POST", url, body, response);
     return response;
   }
+  
   Future<http.Response> delete(String endPoint) async {
   final token = await secureStorage.read(key: "authToken");
   final url = Uri.parse("$baseUrl$endPoint");

@@ -4,6 +4,8 @@ import 'package:emas_app/presentation/lokasi/bloc/lokasi_bloc.dart';
 import 'package:emas_app/presentation/lokasi/lokasiForm.dart';
 
 class LokasiHomePage extends StatelessWidget {
+  const LokasiHomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,37 +15,42 @@ class LokasiHomePage extends StatelessWidget {
           if (state is LokasiLoadingState) {
             return Center(child: CircularProgressIndicator());
           } else if (state is LokasiLoadedState) {
+            if (state.lokasiList.isEmpty) {
+              return Center(child: Text('Belum ada data lokasi'));
+            }
             return ListView.builder(
               itemCount: state.lokasiList.length,
               itemBuilder: (context, index) {
                 final lokasi = state.lokasiList[index];
-                return ListTile(
-                  title: Text(lokasi.nama ?? 'No Name'),
-                  subtitle: Text('Lat: ${lokasi.latitude}, Long: ${lokasi.longitude}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BlocProvider.value(
-                                value: context.read<LokasiBloc>(),
-                                child: LokasiFormPage(lokasi: lokasi),
+                return Card(
+                  child: ListTile(
+                    title: Text(lokasi.nama ?? 'Tanpa Nama'),
+                    subtitle: Text(lokasi.alamat ?? 'Tanpa Alamat'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BlocProvider.value(
+                                  value: context.read<LokasiBloc>(),
+                                  child: LokasiFormPage(lokasi: lokasi),
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          context.read<LokasiBloc>().add(DeleteLokasiEvent(lokasi.lokasiId!));
-                        },
-                      ),
-                    ],
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            context.read<LokasiBloc>().add(DeleteLokasiEvent(lokasi.lokasiId!));
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

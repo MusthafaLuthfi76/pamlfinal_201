@@ -51,8 +51,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   value: role,
                   items: ['admin', 'anak']
                       .map((e) => DropdownMenuItem(
-                            child: Text(e),
                             value: e,
+                            child: Text(e),
                           ))
                       .toList(),
                   onChanged: (value) => setState(() => role = value!),

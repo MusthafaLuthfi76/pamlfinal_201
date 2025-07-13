@@ -10,7 +10,7 @@ import 'package:emas_app/data/model/request/lokasiRequest.dart';
 class LokasiFormPage extends StatefulWidget {
   final Lokasi? lokasi;
 
-  const LokasiFormPage({Key? key, this.lokasi}) : super(key: key);
+  const LokasiFormPage({super.key, this.lokasi});
 
   @override
   _LokasiFormPageState createState() => _LokasiFormPageState();
@@ -24,7 +24,7 @@ class _LokasiFormPageState extends State<LokasiFormPage> {
   String _locationName = '';
 
   late GoogleMapController mapController;
-  LatLng _initialPosition = LatLng(-6.200000, 106.816666);
+  final LatLng _initialPosition = LatLng(-6.200000, 106.816666);
 
   @override
   void initState() {
@@ -32,34 +32,32 @@ class _LokasiFormPageState extends State<LokasiFormPage> {
 
     if (widget.lokasi != null) {
       _namaController.text = widget.lokasi!.nama ?? '';
-      _latitude = widget.lokasi!.latitude;
-      _longitude = widget.lokasi!.longitude;
-
-      if (_latitude != null && _longitude != null) {
-        _initialPosition = LatLng(_latitude!, _longitude!);
-        _searchLocation(_initialPosition);
-      }
+      _locationName = widget.lokasi!.alamat ?? '';
     }
   }
 
-  // Menambahkan method untuk mendapatkan nama lokasi dari koordinat
   Future<void> _searchLocation(LatLng position) async {
     try {
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
+      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
         setState(() {
           _locationName =
-              "${place.street ?? ''}, ${place.locality ?? ''}, ${place.administrativeArea ?? ''}";
+              "${place.street ?? ''}, ${place.subLocality ?? ''}, ${place.locality ?? ''}, ${place.administrativeArea ?? ''}, ${place.country ?? ''}";
+        });
+      } else {
+        setState(() {
+          _locationName = "${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}";
         });
       }
     } catch (e) {
       print("Error fetching location: $e");
+      setState(() {
+        _locationName = "${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}";
+      });
     }
   }
 
-  // Menambahkan method untuk mencari lokasi berdasarkan nama
   Future<void> _searchByName(String name) async {
     try {
       List<Location> locations = await locationFromAddress(name);
@@ -85,7 +83,6 @@ class _LokasiFormPageState extends State<LokasiFormPage> {
     }
   }
 
-  // Event onTap untuk memilih lokasi di peta
   void _onTap(LatLng position) {
     setState(() {
       _latitude = position.latitude;
@@ -94,9 +91,10 @@ class _LokasiFormPageState extends State<LokasiFormPage> {
     _searchLocation(position);
   }
 
-  // Validasi dan simpan lokasi
   void _save() {
-    if (_namaController.text.isEmpty || _latitude == null || _longitude == null) {
+    final nama = _namaController.text.trim();
+
+    if (nama.isEmpty || _latitude == null || _longitude == null || _locationName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Isi semua field dan pilih lokasi di peta")),
       );
@@ -104,20 +102,19 @@ class _LokasiFormPageState extends State<LokasiFormPage> {
     }
 
     final lokasiRequest = LokasiRequest(
-      nama: _namaController.text,
-      latitude: _latitude!,
-      longitude: _longitude!,
+      nama: nama,
+      alamat: _locationName,
     );
 
     final lokasiBloc = context.read<LokasiBloc>();
 
     if (widget.lokasi == null) {
-      lokasiBloc.add(CreateLokasiEvent(lokasiRequest)); // Gunakan event CreateLokasiEvent
+      lokasiBloc.add(CreateLokasiEvent(lokasiRequest));
     } else {
-      lokasiBloc.add(UpdateLokasiEvent(widget.lokasi!.lokasiId!, lokasiRequest)); // Update lokasi yang sudah ada
+      lokasiBloc.add(UpdateLokasiEvent(widget.lokasi!.lokasiId!, lokasiRequest));
     }
 
-    Navigator.pop(context); // Kembali setelah simpan
+    Navigator.pop(context);
   }
 
   @override
@@ -161,7 +158,7 @@ class _LokasiFormPageState extends State<LokasiFormPage> {
               ],
             ),
             SizedBox(height: 12),
-            Container(
+            SizedBox(
               height: 250,
               child: GoogleMap(
                 initialCameraPosition: CameraPosition(
@@ -176,11 +173,14 @@ class _LokasiFormPageState extends State<LokasiFormPage> {
               ),
             ),
             SizedBox(height: 12),
-            Text(
-              _locationName.isEmpty
-                  ? "Pilih lokasi di peta atau cari lokasi"
-                  : "Lokasi: $_locationName",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _locationName.isEmpty
+                    ? "Pilih lokasi di peta atau cari lokasi"
+                    : "Alamat: $_locationName",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
             ),
             SizedBox(height: 20),
             ElevatedButton(

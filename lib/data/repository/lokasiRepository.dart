@@ -16,12 +16,15 @@ class LokasiRepository {
   }
 
   Future<bool> update(int id, LokasiRequest data) async {
-    final res = await client.postWihToken('lokasi/update/$id', data.toJson());
-    return res.statusCode == 200;
+    final res = await client.put(
+    'lokasi/$id', // <== pakai PUT ke /:id
+    data.toJson(),
+  );
+  return res.statusCode == 200;
   }
 
   Future<bool> delete(int id) async {
-    final res = await client.postWihToken('lokasi/delete/$id', {});
-    return res.statusCode == 200;
+    final res = await client.delete('lokasi/$id'); // <== pakai DELETE ke /:id
+  return res.statusCode == 200;
   }
 }

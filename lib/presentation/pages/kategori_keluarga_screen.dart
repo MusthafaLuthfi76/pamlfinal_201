@@ -3,6 +3,8 @@ import '../../data/repository/kategoriKeluargaRepo.dart';
 import '../../data/model/request/kategorikeluargaRequest.dart';
 
 class KategoriKeluargaScreen extends StatefulWidget {
+  const KategoriKeluargaScreen({super.key});
+
   @override
   _KategoriKeluargaScreenState createState() => _KategoriKeluargaScreenState();
 }
@@ -28,8 +30,8 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
   }
 
   void _showForm({Map<String, dynamic>? kategori}) {
-    final _formKey = GlobalKey<FormState>();
-    final TextEditingController _nameController = TextEditingController(
+    final formKey = GlobalKey<FormState>();
+    final TextEditingController nameController = TextEditingController(
       text: kategori?['name'] ?? '',
     );
     showDialog(
@@ -37,9 +39,9 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
       builder: (context) => AlertDialog(
         title: Text(kategori == null ? 'Tambah Kategori Keluarga' : 'Edit Kategori Keluarga'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: TextFormField(
-            controller: _nameController,
+            controller: nameController,
             decoration: InputDecoration(labelText: 'Nama Kategori'),
             validator: (value) =>
                 value == null || value.isEmpty ? 'Tidak boleh kosong' : null,
@@ -52,8 +54,8 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                final req = KategoriKeluargaRequest(nama: _nameController.text);
+              if (formKey.currentState!.validate()) {
+                final req = KategoriKeluargaRequest(nama: nameController.text);
                 bool success;
                 if (kategori == null) {
                   success = await _repo.create(req);
@@ -129,8 +131,8 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showForm(),
-        child: Icon(Icons.add),
         tooltip: 'Tambah Kategori',
+        child: Icon(Icons.add),
       ),
     );
   }

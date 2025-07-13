@@ -8,7 +8,7 @@ import 'package:emas_app/presentation/keluarga/bloc/kategori_keluarga_bloc.dart'
 class KeluargaFormPage extends StatefulWidget {
   final Keluarga? keluarga;
 
-  const KeluargaFormPage({Key? key, this.keluarga}) : super(key: key);
+  const KeluargaFormPage({super.key, this.keluarga});
 
   @override
   _KeluargaFormPageState createState() => _KeluargaFormPageState();
