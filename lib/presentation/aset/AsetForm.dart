@@ -26,28 +26,25 @@ class _HalamanFormAsetState extends State<HalamanFormAset> {
   int? kategoriId;
   int? lokasiId;
   File? foto;
-  String? fotoUrl; // URL gambar dari server, bukan File lokal
+  String? fotoUrl;
 
   @override
-void initState() {
-  super.initState();
-  context.read<AsetBloc>().add(FetchKategoriAset());
+  void initState() {
+    super.initState();
+    context.read<AsetBloc>().add(FetchKategoriAset());
 
-  if (widget.existingData != null) {
-    nama = widget.existingData!['nama'];
-    berat = double.tryParse(widget.existingData!['berat'].toString());
-    harga = double.tryParse(widget.existingData!['harga'].toString());
-    kategoriId = widget.existingData!['kategori_aset_id'];
-    lokasiId = widget.existingData!['lokasi_id'];
+    if (widget.existingData != null) {
+      nama = widget.existingData!['nama'];
+      berat = double.tryParse(widget.existingData!['berat'].toString());
+      harga = double.tryParse(widget.existingData!['harga'].toString());
+      kategoriId = widget.existingData!['kategori_aset_id'];
+      lokasiId = widget.existingData!['lokasi_id'];
 
-    // Ini path dari server, jadi tidak bisa langsung pakai File
-    if (widget.existingData!['foto'] != null &&
-        widget.existingData!['foto'].toString().isNotEmpty) {
-      fotoUrl = "http://192.168.0.185:3000${widget.existingData!['foto']}";
+      if (widget.existingData!['foto'] != null && widget.existingData!['foto'].toString().isNotEmpty) {
+        fotoUrl = "http://192.168.0.185:3000${widget.existingData!['foto']}";
+      }
     }
   }
-}
-
 
   void _ambilDariKamera() async {
     Navigator.push(
@@ -75,51 +72,56 @@ void initState() {
   }
 
   void _simpan() async {
-  if (_formKey.currentState!.validate()) {
-    if (foto == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Foto wajib diisi')),
+    if (_formKey.currentState!.validate()) {
+      if (foto == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto wajib diisi')),
+        );
+        return;
+      }
+
+      _formKey.currentState!.save();
+
+      final asetRequest = AsetRequest(
+        nama: nama!,
+        kategoriAsetId: kategoriId!,
+        lokasiId: lokasiId!,
+        berat: berat!,
+        harga: harga!,
+        foto: ''
       );
-      return;
-    }
 
-    _formKey.currentState!.save();
+      final repo = AsetRepository();
+      final success = await repo.createWithImage(asetRequest, foto!);
 
-    final asetRequest = AsetRequest(
-      nama: nama!,
-      kategoriAsetId: kategoriId!,
-      lokasiId: lokasiId!,
-      berat: berat!,
-      harga: harga!,
-      foto: '' // backend akan isi ini
-    );
-
-    final repo = AsetRepository();
-    final success = await repo.createWithImage(asetRequest, foto!);
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Aset berhasil disimpan')),
-      );
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan aset')),
-      );
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Aset berhasil disimpan')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal menyimpan aset')),
+        );
+      }
     }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Form Aset')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black87),
+        title: const Text('Form Aset', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
+      ),
       body: BlocConsumer<AsetBloc, AsetState>(
         listener: (context, state) {
           if (state is AsetSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Aset berhasil disimpan')),
+              const SnackBar(content: Text('Aset berhasil disimpan')),
             );
             Navigator.pop(context);
           } else if (state is AsetFailure) {
@@ -130,7 +132,7 @@ void initState() {
         },
         builder: (context, state) {
           if (state is AsetLoading || state is AsetSubmitting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (state is AsetLoaded) {
@@ -142,27 +144,46 @@ void initState() {
                   children: [
                     TextFormField(
                       initialValue: nama,
-                      decoration: InputDecoration(labelText: 'Nama Aset'),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Nama Aset',
+                        prefixIcon: Icon(Icons.label),
+                      ),
                       validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                       onSaved: (v) => nama = v,
                     ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       initialValue: berat?.toString(),
-                      decoration: InputDecoration(labelText: 'Berat (kg)'),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Berat (gram)',
+                        prefixIcon: Icon(Icons.scale),
+                      ),
                       keyboardType: TextInputType.number,
                       validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                       onSaved: (v) => berat = double.tryParse(v!),
                     ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       initialValue: harga?.toString(),
-                      decoration: InputDecoration(labelText: 'Harga (Rp)'),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Harga (Rp)',
+                        prefixIcon: Icon(Icons.attach_money),
+                      ),
                       keyboardType: TextInputType.number,
                       validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
                       onSaved: (v) => harga = double.tryParse(v!),
                     ),
+                    const SizedBox(height: 16),
                     DropdownButtonFormField(
                       value: kategoriId,
-                      decoration: InputDecoration(labelText: 'Kategori Aset'),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Kategori Aset',
+                        prefixIcon: Icon(Icons.category),
+                      ),
                       items: state.kategori
                           .map<DropdownMenuItem<int>>(
                             (item) => DropdownMenuItem<int>(
@@ -174,9 +195,14 @@ void initState() {
                       onChanged: (val) => setState(() => kategoriId = val),
                       validator: (v) => v == null ? 'Pilih kategori' : null,
                     ),
+                    const SizedBox(height: 16),
                     DropdownButtonFormField(
                       value: lokasiId,
-                      decoration: InputDecoration(labelText: 'Lokasi Aset'),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Lokasi Aset',
+                        prefixIcon: Icon(Icons.location_on),
+                      ),
                       items: state.lokasi
                           .map<DropdownMenuItem<int>>(
                             (lokasi) => DropdownMenuItem<int>(
@@ -188,34 +214,55 @@ void initState() {
                       onChanged: (val) => setState(() => lokasiId = val),
                       validator: (v) => v == null ? 'Pilih lokasi' : null,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 20),
                     if (foto != null)
-                      Image.file(foto!, height: 150)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(foto!, height: 150, fit: BoxFit.cover),
+                      )
                     else if (fotoUrl != null)
-                      Image.network(fotoUrl!, height: 150, errorBuilder: (_, __, ___) {
-                        return Text("Gagal memuat gambar dari server");
-                      })
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          fotoUrl!,
+                          height: 150,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Text("Gagal memuat gambar dari server"),
+                        ),
+                      )
                     else
-                      Text('Belum ada foto'),
-
+                      const Text('Belum ada foto'),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         TextButton.icon(
                           onPressed: _ambilDariKamera,
-                          icon: Icon(Icons.camera_alt),
-                          label: Text("Kamera"),
+                          icon: const Icon(Icons.camera_alt),
+                          label: const Text("Kamera"),
                         ),
                         TextButton.icon(
                           onPressed: _ambilDariGaleri,
-                          icon: Icon(Icons.photo_library),
-                          label: Text("Galeri"),
+                          icon: const Icon(Icons.photo_library),
+                          label: const Text("Galeri"),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _simpan,
-                      child: Text('Simpan'),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFD700),
+                          foregroundColor: Colors.black,
+                          textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _simpan,
+                        child: const Text('Simpan'),
+                      ),
                     ),
                   ],
                 ),
@@ -223,7 +270,7 @@ void initState() {
             );
           }
 
-          return Center(child: Text('Gagal memuat data kategori/lokasi.'));
+          return const Center(child: Text('Gagal memuat data kategori/lokasi.'));
         },
       ),
     );

@@ -5,22 +5,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:emas_app/presentation/keluarga/bloc/keluarga_bloc.dart';
 
-class KeluargaHomePage extends StatelessWidget {
+class KeluargaHomePage extends StatefulWidget {
   const KeluargaHomePage({super.key});
+
+  @override
+  State<KeluargaHomePage> createState() => _KeluargaHomePageState();
+}
+
+class _KeluargaHomePageState extends State<KeluargaHomePage> {
+  int _currentIndex = 2;
+  final Color goldColor = const Color(0xFFFFD700);
 
   void _showDeleteDialog(BuildContext context, int keluargaId) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text("Konfirmasi"),
-        content: Text("Yakin ingin menghapus anggota keluarga ini?"),
+        title: const Text("Konfirmasi"),
+        content: const Text("Yakin ingin menghapus anggota keluarga ini?"),
         actions: [
           TextButton(
-            child: Text("Batal"),
+            child: const Text("Batal"),
             onPressed: () => Navigator.pop(context),
           ),
           ElevatedButton(
-            child: Text("Hapus"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Hapus"),
             onPressed: () {
               context.read<KeluargaBloc>().add(DeleteKeluargaEvent(keluargaId));
               Navigator.pop(context);
@@ -31,17 +43,33 @@ class KeluargaHomePage extends StatelessWidget {
     );
   }
 
+  void _onTap(int index) {
+    if (index == 0) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else if (index == 1) {
+      Navigator.pushReplacementNamed(context, '/aset');
+    } else if (index == 2) {
+      // stay in keluarga
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Kelola Keluarga')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Kelola Keluarga', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
       body: BlocBuilder<KeluargaBloc, KeluargaState>(
         builder: (context, state) {
           if (state is KeluargaLoadingState) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (state is KeluargaLoadedState) {
             if (state.keluargaList.isEmpty) {
-              return Center(child: Text("Belum ada data keluarga."));
+              return const Center(child: Text("Belum ada data keluarga."));
             }
 
             return ListView.builder(
@@ -50,7 +78,9 @@ class KeluargaHomePage extends StatelessWidget {
                 final Keluarga keluarga = state.keluargaList[index];
 
                 return Card(
-                  margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  elevation: 1.5,
                   child: ListTile(
                     onTap: () {
                       Navigator.push(
@@ -60,13 +90,14 @@ class KeluargaHomePage extends StatelessWidget {
                         ),
                       );
                     },
-                    title: Text(keluarga.nama ?? 'Tanpa Nama'),
-                    subtitle: Text("Status: ${keluarga.status ?? '-'}, Anak: ${keluarga.jumlahAnak ?? 0}"),
+                    leading: const CircleAvatar(child: Icon(Icons.family_restroom)),
+                    title: Text(keluarga.nama ?? 'Tanpa Nama', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text("Status: \${keluarga.status ?? '-'}, Anak: \${keluarga.jumlahAnak ?? 0}"),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
+                          icon: const Icon(Icons.edit, color: Colors.blue),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -77,7 +108,7 @@ class KeluargaHomePage extends StatelessWidget {
                           },
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
+                          icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () => _showDeleteDialog(context, keluarga.keluargaId!),
                         ),
                       ],
@@ -87,9 +118,9 @@ class KeluargaHomePage extends StatelessWidget {
               },
             );
           } else if (state is KeluargaErrorState) {
-            return Center(child: Text('Terjadi kesalahan: ${state.message}'));
+            return Center(child: Text('Terjadi kesalahan: \${state.message}'));
           }
-          return Center(child: Text('Tidak ada data.'));
+          return const Center(child: Text('Tidak ada data.'));
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -99,7 +130,22 @@ class KeluargaHomePage extends StatelessWidget {
             MaterialPageRoute(builder: (_) => KeluargaFormPage()),
           );
         },
-        child: Icon(Icons.add),
+        backgroundColor: goldColor,
+        foregroundColor: Colors.black,
+        child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onTap,
+        selectedItemColor: goldColor,
+        unselectedItemColor: Colors.grey[500],
+        backgroundColor: Colors.white,
+        elevation: 10,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Aset'),
+          BottomNavigationBarItem(icon: Icon(Icons.family_restroom_outlined), label: 'Keluarga'),
+        ],
       ),
     );
   }

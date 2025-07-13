@@ -14,6 +14,8 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
   List<dynamic> _kategoriList = [];
   bool _isLoading = true;
 
+  final Color goldColor = const Color(0xFFFFD700);
+
   @override
   void initState() {
     super.initState();
@@ -37,12 +39,17 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(kategori == null ? 'Tambah Kategori Keluarga' : 'Edit Kategori Keluarga'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Text(kategori == null ? 'Tambah Kategori' : 'Edit Kategori'),
         content: Form(
           key: formKey,
           child: TextFormField(
             controller: nameController,
-            decoration: InputDecoration(labelText: 'Nama Kategori'),
+            decoration: const InputDecoration(
+              labelText: 'Nama Kategori',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.person_outline),
+            ),
             validator: (value) =>
                 value == null || value.isEmpty ? 'Tidak boleh kosong' : null,
           ),
@@ -50,9 +57,10 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Batal'),
+            child: const Text('Batal'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: goldColor),
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 final req = KategoriKeluargaRequest(nama: nameController.text);
@@ -68,7 +76,7 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
                 }
               }
             },
-            child: Text('Simpan'),
+            child: const Text('Simpan', style: TextStyle(color: Colors.black)),
           ),
         ],
       ),
@@ -79,16 +87,18 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Hapus Kategori'),
-        content: Text('Yakin ingin menghapus kategori ini?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('Hapus Kategori'),
+        content: const Text('Yakin ingin menghapus kategori ini?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Batal'),
+            child: const Text('Batal'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Hapus'),
+            child: const Text('Hapus'),
           ),
         ],
       ),
@@ -102,37 +112,53 @@ class _KategoriKeluargaScreenState extends State<KategoriKeluargaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Kategori Keluarga')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Kategori Keluarga', style: TextStyle(color: Colors.black87)),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _kategoriList.isEmpty
-              ? Center(child: Text('Belum ada kategori'))
+              ? const Center(child: Text('Belum ada kategori'))
               : ListView.builder(
                   itemCount: _kategoriList.length,
                   itemBuilder: (context, i) {
                     final kategori = _kategoriList[i];
-                    return ListTile(
-                      title: Text(kategori['name'] ?? ''),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () => _showForm(kategori: kategori),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () => _deleteKategori(kategori['kategori_keluarga_id']),
-                          ),
-                        ],
+                    return Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      elevation: 1.5,
+                      child: ListTile(
+                        leading: const Icon(Icons.category),
+                        title: Text(kategori['name'] ?? '',
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => _showForm(kategori: kategori),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () =>
+                                  _deleteKategori(kategori['kategori_keluarga_id']),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
                 ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: goldColor,
+        foregroundColor: Colors.black,
         onPressed: () => _showForm(),
         tooltip: 'Tambah Kategori',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

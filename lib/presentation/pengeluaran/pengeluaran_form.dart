@@ -24,6 +24,7 @@ class _FormPengeluaranPageState extends State<FormPengeluaranPage> {
   String? tanggal;
   String? namaAset; 
   final keteranganController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -43,7 +44,13 @@ class _FormPengeluaranPageState extends State<FormPengeluaranPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Form Pengeluaran')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black87),
+        title: const Text('Form Pengeluaran', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -55,7 +62,11 @@ class _FormPengeluaranPageState extends State<FormPengeluaranPage> {
                       .map((e) => Aset.fromMap(e as Map<String, dynamic>))
                       .toList();
                   return DropdownButtonFormField<int>(
-                    decoration: const InputDecoration(labelText: 'Pilih Aset'),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Pilih Aset',
+                      prefixIcon: Icon(Icons.widgets),
+                    ),
                     items: asets.map((Aset aset) {
                       return DropdownMenuItem<int>(
                         value: aset.assetId,
@@ -64,14 +75,14 @@ class _FormPengeluaranPageState extends State<FormPengeluaranPage> {
                     }).toList(),
                     value: selectedAssetId,
                     onChanged: (value) {
-                    final selected = asets.firstWhere((a) => a.assetId == value);
-                    setState(() {
-                      selectedAssetId = value;
-                      berat = selected.berat ?? 0;
-                      harga = selected.harga ?? 0;
-                      namaAset = selected.nama; // ⬅ Ambil nama aset
-                    });
-                  },
+                      final selected = asets.firstWhere((a) => a.assetId == value);
+                      setState(() {
+                        selectedAssetId = value;
+                        berat = selected.berat ?? 0;
+                        harga = selected.harga ?? 0;
+                        namaAset = selected.nama;
+                      });
+                    },
                   );
                 }
                 return const Center(child: CircularProgressIndicator());
@@ -83,7 +94,11 @@ class _FormPengeluaranPageState extends State<FormPengeluaranPage> {
             const SizedBox(height: 10),
             TextFormField(
               readOnly: true,
-              decoration: const InputDecoration(labelText: 'Tanggal'),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Tanggal',
+                prefixIcon: Icon(Icons.calendar_today),
+              ),
               onTap: () async {
                 final picked = await showDatePicker(
                   context: context,
@@ -102,26 +117,41 @@ class _FormPengeluaranPageState extends State<FormPengeluaranPage> {
             const SizedBox(height: 10),
             TextFormField(
               controller: keteranganController,
-              decoration: const InputDecoration(labelText: 'Keterangan'),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Keterangan',
+                prefixIcon: Icon(Icons.notes),
+              ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                if (selectedAssetId != null && tanggal != null) {
-                  final data = PengeluaranRequest(
-                    assetId: selectedAssetId!,
-                    berat: berat,
-                    harga: harga.toInt(),
-                    tanggal: tanggal!,
-                    keterangan: keteranganController.text,
-                    namaAset: namaAset, // ⬅ Kirim nama aset
-                  );
-
-                  context.read<PengeluaranBloc>().add(CreatePengeluaran(data));
-                  Navigator.pop(context); // balik ke home setelah simpan
-                }
-              },
-              child: const Text('Simpan'),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFD700),
+                  foregroundColor: Colors.black,
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  if (selectedAssetId != null && tanggal != null) {
+                    final data = PengeluaranRequest(
+                      assetId: selectedAssetId!,
+                      berat: berat,
+                      harga: harga.toInt(),
+                      tanggal: tanggal!,
+                      keterangan: keteranganController.text,
+                      namaAset: namaAset,
+                    );
+                    context.read<PengeluaranBloc>().add(CreatePengeluaran(data));
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Simpan'),
+              ),
             ),
           ],
         ),

@@ -15,8 +15,17 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _currentIndex = 0;
-
+  final Color goldColor = const Color(0xFFFFD700);
   final List<String> _titles = ['Dashboard', 'Aset & Warisan', 'Keluarga'];
+  final List<Color> cardColors = [
+    Color(0xFFFFF8E1),
+    Color(0xFFE3F2FD),
+    Color(0xFFE8F5E9),
+    Color(0xFFFFEBEE),
+    Color(0xFFF3E5F5),
+    Color(0xFFFFF3E0),
+    Color(0xFFE0F2F1),
+  ];
 
   @override
   void initState() {
@@ -46,26 +55,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await _navigateAndRefresh(route);
   }
 
+  Widget _buildSummaryCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    Color? backgroundColor,
+    Color? iconColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor ?? Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: (iconColor ?? Colors.grey).withOpacity(0.2),
+            child: Icon(icon, color: iconColor ?? Colors.black),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 4),
+              Text(subtitle, style: TextStyle(color: Colors.grey[700])),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(_titles[_currentIndex]),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        toolbarHeight: 80,
+        title: Text(
+          _titles[_currentIndex],
+          style: const TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.w600),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black87),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
-            tooltip: 'Muat Ulang Data',
-            onPressed: () {
-              context.read<DashboardBloc>().add(LoadDashboardData());
-            },
+            icon: const Icon(Icons.refresh),
+            onPressed: () => context.read<DashboardBloc>().add(LoadDashboardData()),
           ),
           IconButton(
-            icon: Icon(Icons.logout),
-            tooltip: 'Keluar',
+            icon: const Icon(Icons.logout),
             onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
           ),
         ],
-
       ),
       body: _currentIndex == 0
           ? RefreshIndicator(
@@ -75,44 +129,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: BlocBuilder<DashboardBloc, DashboardState>(
                 builder: (context, state) {
                   if (state is DashboardLoading) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   } else if (state is DashboardLoaded) {
                     final kategoriCount = state.kategoriCount;
                     final totalHarta = state.totalHarta;
                     final jumlahKeluarga = state.jumlahKeluarga;
 
                     return SingleChildScrollView(
-                      padding: EdgeInsets.all(16),
-                      physics: AlwaysScrollableScrollPhysics(),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Ringkasan Aset", style: Theme.of(context).textTheme.titleLarge),
-                          SizedBox(height: 10),
-                          ...kategoriCount.entries.map((entry) => Card(
-                                child: ListTile(
-                                  leading: Icon(Icons.category),
-                                  title: Text("Kategori: ${entry.key}"),
-                                  subtitle: Text("Jumlah Aset: ${entry.value}"),
+                          const SizedBox(height: 10),
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 3 / 2,
+                            ),
+                            itemCount: kategoriCount.length,
+                            itemBuilder: (context, index) {
+                              final kategori = kategoriCount.keys.elementAt(index);
+                              final jumlah = kategoriCount[kategori]!;
+                              final totalHarga = state.totalAsetPerKategori[kategori] ?? 0.0;
+                              final bgColor = cardColors[index % cardColors.length];
+
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: bgColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.08),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
-                              )),
-                          SizedBox(height: 10),
-                          Card(
-                            color: Colors.amber[50],
-                            child: ListTile(
-                              leading: Icon(Icons.attach_money, color: Colors.green),
-                              title: Text("Total Harta"),
-                              subtitle: Text("Rp ${totalHarta.toString()}"),
-                            ),
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(kategori, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 6),
+                                    Text("Jumlah: $jumlah", style: TextStyle(color: Colors.grey[800])),
+                                    Text("Nilai: Rp ${totalHarga.toStringAsFixed(0)}", style: TextStyle(color: Colors.grey[800])),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                          SizedBox(height: 10),
-                          Card(
-                            color: Colors.lightBlue[50],
-                            child: ListTile(
-                              leading: Icon(Icons.people, color: Colors.blue),
-                              title: Text("Total Anggota Keluarga"),
-                              subtitle: Text("$jumlahKeluarga orang"),
-                            ),
+                          const SizedBox(height: 20),
+                          _buildSummaryCard(
+                            icon: Icons.attach_money,
+                            title: "Total Harta",
+                            subtitle: "Rp ${totalHarta.toStringAsFixed(0)}",
+                            backgroundColor: Colors.green[50],
+                            iconColor: Colors.green,
+                          ),
+                          _buildSummaryCard(
+                            icon: Icons.people,
+                            title: "Total Anggota Keluarga",
+                            subtitle: "$jumlahKeluarga orang",
+                            backgroundColor: Colors.blue[50],
+                            iconColor: Colors.blue,
                           ),
                         ],
                       ),
@@ -120,7 +204,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   } else if (state is DashboardError) {
                     return Center(child: Text(state.message));
                   }
-                  return Center(child: Text("Belum ada data"));
+                  return const Center(child: Text("Belum ada data"));
                 },
               ),
             )
@@ -131,30 +215,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(color: Colors.blue),
-              child: Text(
-                'Menu Fitur',
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
+              child: const Text('Menu Fitur', style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
-            ListTile(title: Text('Kelola Aset'), onTap: () => _navigateTo('/aset')),
-            ListTile(title: Text('Kategori Aset'), onTap: () => _navigateTo('/kategori-aset')),
-            ListTile(title: Text('Pengeluaran'), onTap: () => _navigateTo('/pengeluaran')),
-            ListTile(title: Text('Lokasi'), onTap: () => _navigateTo('/lokasi')),
-            ListTile(title: Text('Anggota Keluarga'), onTap: () => _navigateTo('/keluarga')),
-            ListTile(title: Text('Kategori Keluarga'), onTap: () => _navigateTo('/kategori-keluarga')),
-            ListTile(title: Text('Warisan'), onTap: () => _navigateTo('/warisan')),
-            ListTile(title: Text('Total Aset'), onTap: () => _navigateTo('/total-aset')),
-            ListTile(title: Text('Total Harta'), onTap: () => _navigateTo('/total-harta')),
+            ListTile(title: const Text('Kelola Aset'), onTap: () => _navigateTo('/aset')),
+            ListTile(title: const Text('Kategori Aset'), onTap: () => _navigateTo('/kategori-aset')),
+            ListTile(title: const Text('Pengeluaran'), onTap: () => _navigateTo('/pengeluaran')),
+            ListTile(title: const Text('Lokasi'), onTap: () => _navigateTo('/lokasi')),
+            ListTile(title: const Text('Anggota Keluarga'), onTap: () => _navigateTo('/keluarga')),
+            ListTile(title: const Text('Kategori Keluarga'), onTap: () => _navigateTo('/kategori-keluarga')),
+            ListTile(title: const Text('Warisan'), onTap: () => _navigateTo('/warisan')),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTap,
+        selectedItemColor: goldColor,
+        unselectedItemColor: Colors.grey[500],
+        backgroundColor: Colors.white,
+        elevation: 10,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Aset'),
-          BottomNavigationBarItem(icon: Icon(Icons.family_restroom), label: 'Keluarga'),
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Aset'),
+          BottomNavigationBarItem(icon: Icon(Icons.family_restroom_outlined), label: 'Keluarga'),
         ],
       ),
     );

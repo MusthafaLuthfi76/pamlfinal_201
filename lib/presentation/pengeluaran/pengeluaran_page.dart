@@ -8,15 +8,22 @@ import 'package:emas_app/presentation/pengeluaran/bloc/pengeluaran_state.dart';
 class HomePengeluaranPage extends StatelessWidget {
   const HomePengeluaranPage({Key? key}) : super(key: key);
 
+  final Color goldColor = const Color(0xFFFFD700);
+
   @override
   Widget build(BuildContext context) {
-    // Pastikan pemanggilan event dilakukan di dalam addPostFrameCallback agar tidak men-trigger rebuild infinite
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PengeluaranBloc>().add(LoadPengeluaran());
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Data Pengeluaran")),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text("Kelola Pengeluaran", style: TextStyle(color: Colors.black87)),
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -24,6 +31,8 @@ class HomePengeluaranPage extends StatelessWidget {
             MaterialPageRoute(builder: (_) => const FormPengeluaranPage()),
           );
         },
+        backgroundColor: goldColor,
+        foregroundColor: Colors.black,
         child: const Icon(Icons.add),
       ),
       body: BlocBuilder<PengeluaranBloc, PengeluaranState>(
@@ -35,20 +44,39 @@ class HomePengeluaranPage extends StatelessWidget {
           if (state is PengeluaranLoaded) {
             final list = state.pengeluaranList;
             if (list.isEmpty) {
-              return const Center(child: Text("Belum ada data pengeluaran"));
+              return const Center(child: Text("Belum ada data pengeluaran."));
             }
             return ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: list.length,
               itemBuilder: (context, index) {
                 final p = list[index];
-                return ListTile(
-                  title: Text('${p.namaAset ?? 'Unknown'} - Rp${p.harga}'),
-                  subtitle: Text(
-                    'Tanggal: ${p.tanggal}\nHarga: Rp${p.harga} - ${p.keterangan ?? ''}',
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => context.read<PengeluaranBloc>().add(DeletePengeluaran(p.id!)),
+                return Card(
+                  elevation: 1.5,
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    title: Text(
+                      p.namaAset ?? 'Tanpa Nama',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text("Tanggal: ${p.tanggal}"),
+                        Text("Harga: Rp${p.harga?.toStringAsFixed(0) ?? '0'}"),
+                        if (p.keterangan != null && p.keterangan!.isNotEmpty)
+                          Text("Keterangan: ${p.keterangan}"),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        context.read<PengeluaranBloc>().add(DeletePengeluaran(p.id!));
+                      },
+                    ),
                   ),
                 );
               },
@@ -56,10 +84,10 @@ class HomePengeluaranPage extends StatelessWidget {
           }
 
           if (state is PengeluaranError) {
-            return Center(child: Text(state.message));
+            return Center(child: Text('Gagal memuat data: ${state.message}'));
           }
 
-          return const SizedBox();
+          return const Center(child: Text("Tidak ada data."));
         },
       ),
     );

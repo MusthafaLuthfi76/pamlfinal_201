@@ -15,6 +15,9 @@ class AsetHomePage extends StatefulWidget {
 }
 
 class _AsetHomePageState extends State<AsetHomePage> {
+  int _currentIndex = 1;
+  final Color goldColor = const Color(0xFFFFD700);
+
   @override
   void initState() {
     super.initState();
@@ -25,15 +28,16 @@ class _AsetHomePageState extends State<AsetHomePage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text("Hapus Aset"),
-        content: Text("Apakah Anda yakin ingin menghapus aset ini?"),
+        title: const Text("Hapus Aset"),
+        content: const Text("Apakah Anda yakin ingin menghapus aset ini?"),
         actions: [
           TextButton(
-            child: Text("Batal"),
+            child: const Text("Batal"),
             onPressed: () => Navigator.pop(context),
           ),
           ElevatedButton(
-            child: Text("Hapus"),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Hapus"),
             onPressed: () {
               Navigator.pop(context);
               context.read<AsetBloc>().add(DeleteAset(asetId));
@@ -45,96 +49,122 @@ class _AsetHomePageState extends State<AsetHomePage> {
   }
 
   Widget _buildAsetCard(Aset aset) {
-  final fotoUrl = (aset.foto != null && aset.foto!.isNotEmpty)
-      ? (aset.foto!.startsWith("http")
-          ? aset.foto!
-          : "http://192.168.0.185:3000${aset.foto!}")
-      : null;
+    final fotoUrl = (aset.foto != null && aset.foto!.isNotEmpty)
+        ? (aset.foto!.startsWith("http")
+            ? aset.foto!
+            : "http://192.168.0.185:3000${aset.foto!}")
+        : null;
 
-  return Card(
-    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    child: ListTile(
-      leading: fotoUrl != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: Image.network(
-                fotoUrl,
-                width: 60,
-                height: 60,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported),
+    return Card(
+      color: Colors.grey[50],
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: fotoUrl != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  fotoUrl,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
+                ),
+              )
+            : CircleAvatar(
+                backgroundColor: Colors.grey[200],
+                child: const Icon(Icons.image, color: Colors.grey),
               ),
-            )
-          : Icon(Icons.image, size: 60, color: Colors.grey),
-      title: Text(aset.nama ?? 'Tanpa Nama'),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Berat: ${aset.berat} gram'),
-          Text('Harga: Rp${aset.harga?.toStringAsFixed(0) ?? "0"}'),
-        ],
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Icons.visibility, color: Colors.green),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DetailAsetPage(aset: aset),
-                ),
-              );
-            },
+        title: Text(
+          aset.nama ?? 'Tanpa Nama',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Berat: ${aset.berat} gram'),
+              Text('Harga: Rp${aset.harga?.toStringAsFixed(0) ?? "0"}'),
+            ],
           ),
-          IconButton(
-            icon: Icon(Icons.edit, color: Colors.blue),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => BlocProvider.value(
-                    value: context.read<AsetBloc>(),
-                    child: HalamanFormAset(existingData: aset.toMap()),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.visibility, color: Colors.green),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DetailAsetPage(aset: aset),
                   ),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              _showDeleteDialog(context, aset.assetId!);
-            },
-          ),
-        ],
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.blue),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<AsetBloc>(),
+                      child: HalamanFormAset(existingData: aset.toMap()),
+                    ),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _showDeleteDialog(context, aset.assetId!),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
+  void _onTap(int index) {
+    if (index == 0) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else if (index == 1) {
+      // stay in aset
+    } else if (index == 2) {
+      Navigator.pushReplacementNamed(context, '/keluarga');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Kelola Aset')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text('Kelola Aset', style: TextStyle(color: Colors.black87)),
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
       body: BlocConsumer<AsetBloc, AsetState>(
         listener: (context, state) {
           if (state is AsetSuccess || state is AsetDeleted || state is AsetUpdated) {
             context.read<AsetBloc>().add(FetchAllAset());
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Operasi berhasil")),
+              const SnackBar(content: Text("Operasi berhasil")),
             );
           }
         },
         builder: (context, state) {
           if (state is AsetLoading) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (state is AsetListLoaded) {
             final asetList = state.aset.map((e) => Aset.fromMap(e)).toList();
             if (asetList.isEmpty) {
-              return Center(child: Text("Belum ada aset."));
+              return const Center(child: Text("Belum ada aset."));
             }
             return ListView.builder(
               itemCount: asetList.length,
@@ -145,7 +175,7 @@ class _AsetHomePageState extends State<AsetHomePage> {
           } else if (state is AsetFailure) {
             return Center(child: Text("Gagal memuat aset: ${state.message}"));
           }
-          return Center(child: Text("Tidak ada data."));
+          return const Center(child: Text("Tidak ada data."));
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -155,12 +185,26 @@ class _AsetHomePageState extends State<AsetHomePage> {
             MaterialPageRoute(
               builder: (_) => BlocProvider.value(
                 value: context.read<AsetBloc>(),
-                child: HalamanFormAset(),
+                child: const HalamanFormAset(),
               ),
             ),
           );
         },
-        child: Icon(Icons.add),
+        backgroundColor: goldColor,
+        child: const Icon(Icons.add, color: Colors.black),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onTap,
+        selectedItemColor: goldColor,
+        unselectedItemColor: Colors.grey[500],
+        backgroundColor: Colors.white,
+        elevation: 10,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Aset'),
+          BottomNavigationBarItem(icon: Icon(Icons.family_restroom_outlined), label: 'Keluarga'),
+        ],
       ),
     );
   }

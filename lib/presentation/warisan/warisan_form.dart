@@ -47,7 +47,12 @@ class _WarisanFormPageState extends State<WarisanFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Form Warisan")),
+      appBar: AppBar(
+        title: const Text("Form Warisan"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0.5,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -57,7 +62,11 @@ class _WarisanFormPageState extends State<WarisanFormPage> {
                 if (state is AsetDropdownLoaded) {
                   return DropdownButtonFormField<int>(
                     value: selectedAsetId,
-                    decoration: InputDecoration(labelText: "Pilih Aset"),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: "Pilih Aset",
+                      prefixIcon: Icon(Icons.widgets),
+                    ),
                     items: state.asets.map<DropdownMenuItem<int>>((aset) {
                       return DropdownMenuItem(
                         value: aset.assetId,
@@ -67,17 +76,21 @@ class _WarisanFormPageState extends State<WarisanFormPage> {
                     onChanged: (val) => setState(() => selectedAsetId = val),
                   );
                 }
-                return CircularProgressIndicator();
+                return const CircularProgressIndicator();
               },
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             BlocBuilder<KeluargaBloc, KeluargaState>(
               builder: (context, state) {
                 if (state is KeluargaLoadedState) {
                   return DropdownButtonFormField<int>(
                     value: selectedKeluargaId,
-                    decoration: InputDecoration(labelText: "Pilih Anggota Keluarga"),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: "Pilih Anggota Keluarga",
+                      prefixIcon: Icon(Icons.family_restroom),
+                    ),
                     items: state.keluargaList.map<DropdownMenuItem<int>>((keluarga) {
                       return DropdownMenuItem(
                         value: keluarga.keluargaId,
@@ -87,19 +100,31 @@ class _WarisanFormPageState extends State<WarisanFormPage> {
                     onChanged: (val) => setState(() => selectedKeluargaId = val),
                   );
                 }
-                return CircularProgressIndicator();
+                return const CircularProgressIndicator();
               },
             ),
 
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _submit,
-              child: Text("Simpan"),
-            )
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: _submit,
+                icon: const Icon(Icons.save),
+                label: const Text("Simpan"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFD700),
+                  foregroundColor: Colors.black,
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
-

@@ -9,28 +9,45 @@ class LokasiHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Lokasi Management')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black87),
+        title: const Text(
+          'Kelola Lokasi',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+        ),
+      ),
       body: BlocBuilder<LokasiBloc, LokasiState>(
         builder: (context, state) {
           if (state is LokasiLoadingState) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (state is LokasiLoadedState) {
             if (state.lokasiList.isEmpty) {
-              return Center(child: Text('Belum ada data lokasi'));
+              return const Center(child: Text('Belum ada data lokasi'));
             }
             return ListView.builder(
               itemCount: state.lokasiList.length,
               itemBuilder: (context, index) {
                 final lokasi = state.lokasiList[index];
                 return Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  elevation: 1.5,
                   child: ListTile(
-                    title: Text(lokasi.nama ?? 'Tanpa Nama'),
+                    contentPadding: const EdgeInsets.all(12),
+                    leading: const CircleAvatar(child: Icon(Icons.location_on)),
+                    title: Text(
+                      lokasi.nama ?? 'Tanpa Nama',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     subtitle: Text(lokasi.alamat ?? 'Tanpa Alamat'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.edit),
+                          icon: const Icon(Icons.edit, color: Colors.blue),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -44,7 +61,7 @@ class LokasiHomePage extends StatelessWidget {
                           },
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete),
+                          icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
                             context.read<LokasiBloc>().add(DeleteLokasiEvent(lokasi.lokasiId!));
                           },
@@ -58,23 +75,26 @@ class LokasiHomePage extends StatelessWidget {
           } else if (state is LokasiErrorState) {
             return Center(child: Text('Error: ${state.message}'));
           }
-          return Center(child: Text('No data available.'));
+          return const Center(child: Text('Tidak ada data.'));
         },
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFFFD700),
+        foregroundColor: Colors.black,
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => BlocProvider.value(
                 value: context.read<LokasiBloc>(),
-                child: LokasiFormPage(),
+                child: const LokasiFormPage(),
               ),
             ),
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
+

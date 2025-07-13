@@ -15,6 +15,8 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
   List<KategoriAset> _kategoriList = [];
   bool _isLoading = true;
 
+  final Color goldColor = const Color(0xFFFFD700);
+
   @override
   void initState() {
     super.initState();
@@ -25,27 +27,30 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
     setState(() => _isLoading = true);
     final data = await _repo.getAll();
     setState(() {
-      _kategoriList = data
-          .map<KategoriAset>((e) => KategoriAset.fromMap(e))
-          .toList();
+      _kategoriList = data.map<KategoriAset>((e) => KategoriAset.fromMap(e)).toList();
       _isLoading = false;
     });
   }
 
   void _showForm({KategoriAset? kategori}) {
     final formKey = GlobalKey<FormState>();
-    final TextEditingController nameController = TextEditingController(
-      text: kategori?.name ?? '',
-    );
+    final TextEditingController nameController =
+        TextEditingController(text: kategori?.name ?? '');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text(kategori == null ? 'Tambah Kategori' : 'Edit Kategori'),
         content: Form(
           key: formKey,
           child: TextFormField(
             controller: nameController,
-            decoration: InputDecoration(labelText: 'Nama Kategori'),
+            decoration: const InputDecoration(
+              labelText: 'Nama Kategori',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.category),
+            ),
             validator: (value) =>
                 value == null || value.isEmpty ? 'Tidak boleh kosong' : null,
           ),
@@ -53,9 +58,10 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Batal'),
+            child: const Text('Batal'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: goldColor),
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 final req = KategoriRequest(name: nameController.text);
@@ -71,7 +77,7 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
                 }
               }
             },
-            child: Text('Simpan'),
+            child: const Text('Simpan', style: TextStyle(color: Colors.black)),
           ),
         ],
       ),
@@ -82,16 +88,18 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Hapus Kategori'),
-        content: Text('Yakin ingin menghapus kategori ini?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('Hapus Kategori'),
+        content: const Text('Yakin ingin menghapus kategori ini?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Batal'),
+            child: const Text('Batal'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Hapus'),
+            child: const Text('Hapus'),
           ),
         ],
       ),
@@ -105,37 +113,52 @@ class _KategoriAsetScreenState extends State<KategoriAsetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Kategori Aset')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Kategori Aset', style: TextStyle(color: Colors.black87)),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _kategoriList.isEmpty
-          ? Center(child: Text('Belum ada kategori'))
-          : ListView.builder(
-              itemCount: _kategoriList.length,
-              itemBuilder: (context, i) {
-                final kategori = _kategoriList[i];
-                return ListTile(
-                  title: Text(kategori.name ?? ''),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () => _showForm(kategori: kategori),
+              ? const Center(child: Text('Belum ada kategori'))
+              : ListView.builder(
+                  itemCount: _kategoriList.length,
+                  itemBuilder: (context, i) {
+                    final kategori = _kategoriList[i];
+                    return Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      elevation: 1.5,
+                      child: ListTile(
+                        leading: const Icon(Icons.house),
+                        title: Text(kategori.name ?? '',
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => _showForm(kategori: kategori),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteKategori(kategori.id!),
+                            ),
+                          ],
+                        ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => _deleteKategori(kategori.id!),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    );
+                  },
+                ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: goldColor,
+        foregroundColor: Colors.black,
         onPressed: () => _showForm(),
         tooltip: 'Tambah Kategori',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
